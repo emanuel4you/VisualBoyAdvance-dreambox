@@ -87,7 +87,11 @@ bool utilWritePNGFile(const char *fileName, int w, int h, u8 *pix)
     return false;
   }
 
+#if PNG_LIBPNG_VER_MAJOR >= 1 && PNG_LIBPNG_VER_MINOR >= 4
+  if (setjmp(png_jmpbuf(png_ptr))) {
+#else
   if(setjmp(png_ptr->jmpbuf)) {
+#endif
     png_destroy_write_struct(&png_ptr,NULL);
     fclose(fp);
     return false;
