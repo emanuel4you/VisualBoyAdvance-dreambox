@@ -160,6 +160,8 @@ noinst_PROGRAMS = TestEmu
 
 VisualBoyAdvance_SOURCES = \
 	SDL.cpp			\
+	fifo.c			\
+	fifo.h			\
 	debugger.cpp		\
 	debugger.h		\
 	../2xSaI.cpp		\
@@ -238,6 +240,8 @@ VisualBoyAdvance_DEPENDENCIES = @VBA_LIBS@
 
 TestEmu_SOURCES = \
 	TestEmu.cpp		\
+	fifo.c			\
+	fifo.h			\
 	debugger.cpp		\
 	debugger.h		\
 	../2xSaI.cpp		\
@@ -468,6 +472,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expr-lex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/exprNode.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fifo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/getopt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/getopt1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hq2x.Po@am__quote@
