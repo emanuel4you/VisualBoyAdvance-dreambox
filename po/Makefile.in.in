@@ -125,7 +125,7 @@ $(DOMAIN).pot-update: $(POTFILES) $(srcdir)/POTFILES.in remove-potcdate.sed
 # every "make" invocation, only create it when it is missing.
 # Only "make $(DOMAIN).pot-update" or "make dist" will force an update.
 $(srcdir)/$(DOMAIN).pot:
-	$(MAKE) $(DOMAIN).pot-update
+	cp -a $(srcdir)/$(DOMAIN)-$(VERSION).pot $@
 
 # This target rebuilds a PO file if $(DOMAIN).pot has changed.
 # Note that a PO file is not touched if it doesn't need to be changed.
