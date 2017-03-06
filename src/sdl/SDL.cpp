@@ -177,6 +177,10 @@ char biosFileName[2048];
 char captureDir[2048];
 char saveDir[2048];
 char batteryDir[2048];
+char* homeDir = NULL;
+
+/* Directory within homedir to use for default save location. */
+#define DOT_DIR ".vba"
 
 static char *rewindMemory = NULL;
 static int rewindPos = 0;
@@ -888,11 +892,10 @@ FILE *sdlFindFile(const char *name)
     return f;
   }
 
-  char *home = getenv("HOME");
-
-  if(home != NULL) {
-    fprintf(stderr, "Searching home directory: %s\n", home);
-    sprintf(path, "%s%c%s", home, FILE_SEP, name);
+  if(homeDir) {
+    fprintf(stderr, "Searching home directory: %s%c%s\n", homeDir, FILE_SEP,
+        DOT_DIR);
+    sprintf(path, "%s%c%s%c%s", homeDir, FILE_SEP, DOT_DIR, FILE_SEP, name);
     f = fopen(path, "r");
     if(f != NULL)
       return f;
@@ -1356,6 +1359,8 @@ void sdlWriteState(int num)
   if(saveDir[0])
     sprintf(stateName, "%s/%s%d.sgm", saveDir, sdlGetFilename(filename),
             num+1);
+  else if (homeDir)
+    sprintf(stateName, "%s/%s/%s%d.sgm", homeDir, DOT_DIR, sdlGetFilename(filename), num + 1);
   else
     sprintf(stateName,"%s%d.sgm", filename, num+1);
   
@@ -1375,6 +1380,8 @@ void sdlReadState(int num)
   if(saveDir[0])
     sprintf(stateName, "%s/%s%d.sgm", saveDir, sdlGetFilename(filename),
             num+1);
+  else if (homeDir)
+    sprintf(stateName, "%s/%s/%s%d.sgm", homeDir, DOT_DIR, sdlGetFilename(filename), num + 1);
   else
     sprintf(stateName,"%s%d.sgm", filename, num+1);
 
@@ -1393,6 +1400,8 @@ void sdlWriteBattery()
 
   if(batteryDir[0])
     sprintf(buffer, "%s/%s.sav", batteryDir, sdlGetFilename(filename));
+  else if (homeDir)
+    sprintf(buffer, "%s/%s/%s.sav", homeDir, DOT_DIR, sdlGetFilename(filename));
   else  
     sprintf(buffer, "%s.sav", filename);
 
@@ -1407,6 +1416,8 @@ void sdlReadBattery()
   
   if(batteryDir[0])
     sprintf(buffer, "%s/%s.sav", batteryDir, sdlGetFilename(filename));
+  else if (homeDir)
+    sprintf(buffer, "%s/%s/%s.sav", homeDir, DOT_DIR, sdlGetFilename(filename));
   else 
     sprintf(buffer, "%s.sav", filename);
   
@@ -1947,6 +1958,7 @@ Long options only:\n\
 
 int main(int argc, char **argv)
 {
+  char buf[1024];
   fprintf(stderr, "VisualBoyAdvance version %s [SDL]\n", VERSION);
 
   arg0 = argv[0];
@@ -1957,11 +1969,18 @@ int main(int argc, char **argv)
   ipsname[0] = 0;
   
   int op = -1;
+  struct stat s;
 
   frameSkip = 2;
   gbBorderOn = 0;
 
   parseDebug = true;
+
+  homeDir = getenv("HOME");
+  snprintf(buf, 1024, "%s/%s", homeDir, DOT_DIR);
+  /* Make dot dir if not existent */
+  if (stat(buf, &s) == -1 || !S_ISDIR(s.st_mode))
+    mkdir(buf, 0755);
 
   sdlReadPreferences();
 
@@ -2907,6 +2926,8 @@ void systemScreenCapture(int a)
   if(captureFormat) {
     if(captureDir[0])
       sprintf(buffer, "%s/%s%02d.bmp", captureDir, sdlGetFilename(filename), a);
+    else if (homeDir)
+      sprintf(buffer, "%s/%s/%s%02d.bmp", homeDir, DOT_DIR, sdlGetFilename(filename), a);
     else
       sprintf(buffer, "%s%02d.bmp", filename, a);
 
@@ -2914,6 +2935,8 @@ void systemScreenCapture(int a)
   } else {
     if(captureDir[0])
       sprintf(buffer, "%s/%s%02d.png", captureDir, sdlGetFilename(filename), a);
+    else if (homeDir)
+      sprintf(buffer, "%s/%s/%s%02d.png", homeDir, DOT_DIR, sdlGetFilename(filename), a);
     else
       sprintf(buffer, "%s%02d.png", filename, a);
     emulator.emuWritePNG(buffer);
