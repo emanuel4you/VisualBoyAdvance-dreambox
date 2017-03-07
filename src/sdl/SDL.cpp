@@ -304,6 +304,15 @@ u16 defaultJoypad[12] = {
   SDLK_SPACE, SDLK_F12
 };
 
+u16 keyboard[12] = {
+  SDLK_LEFT,  SDLK_RIGHT,
+  SDLK_UP,    SDLK_DOWN,
+  SDLK_z,     SDLK_x,
+  SDLK_RETURN,SDLK_BACKSPACE,
+  SDLK_a,     SDLK_s,
+  SDLK_SPACE, SDLK_F12
+};
+
 u16 motion[4] = {
   SDLK_KP4, SDLK_KP6, SDLK_KP8, SDLK_KP2
 };
@@ -993,7 +1002,31 @@ void sdlReadPreferences(FILE *f)
       continue;
     }
 
-    if(!strcmp(key,"Joy0_Left")) {
+    if(!strcmp(key,"Key0_Left")) {
+      keyboard[KEY_LEFT] = sdlFromHex(value);
+    } else if(!strcmp(key, "Key0_Right")) {
+      keyboard[KEY_RIGHT] = sdlFromHex(value);
+    } else if(!strcmp(key, "Key0_Up")) {
+      keyboard[KEY_UP] = sdlFromHex(value);
+    } else if(!strcmp(key, "Key0_Down")) {
+      keyboard[KEY_DOWN] = sdlFromHex(value);
+    } else if(!strcmp(key, "Key0_A")) {
+      keyboard[KEY_BUTTON_A] = sdlFromHex(value);
+    } else if(!strcmp(key, "Key0_B")) {
+      keyboard[KEY_BUTTON_B] = sdlFromHex(value);
+    } else if(!strcmp(key, "Key0_L")) {
+      keyboard[KEY_BUTTON_L] = sdlFromHex(value);
+    } else if(!strcmp(key, "Key0_R")) {
+      keyboard[KEY_BUTTON_R] = sdlFromHex(value);
+    } else if(!strcmp(key, "Key0_Start")) {
+      keyboard[KEY_BUTTON_START] = sdlFromHex(value);
+    } else if(!strcmp(key, "Key0_Select")) {
+      keyboard[KEY_BUTTON_SELECT] = sdlFromHex(value);
+    } else if(!strcmp(key, "Key0_Speed")) {
+      keyboard[KEY_BUTTON_SPEED] = sdlFromHex(value);
+    } else if(!strcmp(key, "Key0_Capture")) {
+      keyboard[KEY_BUTTON_CAPTURE] = sdlFromHex(value);
+    } else if(!strcmp(key,"Joy0_Left")) {
       joypad[0][KEY_LEFT] = sdlFromHex(value);
     } else if(!strcmp(key, "Joy0_Right")) {
       joypad[0][KEY_RIGHT] = sdlFromHex(value);
@@ -1439,11 +1472,10 @@ void sdlReadBattery()
 void sdlUpdateKey(int key, bool down)
 {
   int i;
-  for(int j = 0; j < 4; j++) {
-    for(i = 0 ; i < 12; i++) {
-      if((joypad[j][i] & 0xf000) == 0) {
-        if(key == joypad[j][i])
-          sdlButtons[j][i] = down;
+  for(i = 0 ; i < 12; i++) {
+    if((keyboard[i] & 0xf000) == 0) {
+      if(key == keyboard[i]) {
+        sdlButtons[0][i] = down;
       }
     }
   }
@@ -1612,9 +1644,10 @@ void sdlCheckKeys()
 {
   sdlNumDevices = SDL_NumJoysticks();
 
-  if(sdlNumDevices)
+  if(sdlNumDevices) {
     sdlDevices = (SDL_Joystick **)calloc(1,sdlNumDevices *
                                          sizeof(SDL_Joystick **));
+  }
   int i;
 
   bool usesJoy = false;
@@ -1668,7 +1701,6 @@ void sdlCheckKeys()
         usesJoy = true;
     }
   }
-
   if(usesJoy)
     SDL_JoystickEventState(SDL_ENABLE);
 }
@@ -1762,6 +1794,12 @@ void sdlPollEvents()
             wasPaused = true;
         }
         break;
+      case SDLK_q:
+        if(!(event.key.keysym.mod & MOD_NOCTRL) &&
+           (event.key.keysym.mod & KMOD_CTRL)) {
+          emulating = 0;
+        }
+        break;
       case SDLK_ESCAPE:
         emulating = 0;
         break;
@@ -1823,8 +1861,8 @@ void sdlPollEvents()
               "autofire R",
               "autofire L"};
           int mask = 1 << (event.key.keysym.sym - SDLK_1);
-    if(event.key.keysym.sym > SDLK_2)
-      mask <<= 6;
+          if(event.key.keysym.sym > SDLK_2)
+            mask <<= 6;
           if(autoFire & mask) {
             autoFire &= ~mask;
             systemScreenMessage(disableMessages[event.key.keysym.sym - SDLK_1]);
@@ -1870,8 +1908,8 @@ void sdlPollEvents()
 
 void usage(char *cmd)
 {
-  printf("%s [option ...] file\n", cmd);
-  printf("\
+ fprintf(stderr, "%s [option ...] file\n", cmd);
+ fprintf(stderr, "\
 \n\
 Options:\n\
   -1, --video-1x               1x\n\
@@ -1917,7 +1955,7 @@ Options:\n\
   -p, --profile=[HERTZ]        Enable profiling\n\
   -s, --frameskip=FRAMESKIP    Set frame skip (0...9)\n\
 ");
-  printf("\
+ fprintf(stderr, "\
   -t, --save-type=TYPE         Set the available save type\n\
       --save-auto               0 - Automatic (EEPROM, SRAM, FLASH)\n\
       --save-eeprom             1 - EEPROM\n\
@@ -2826,7 +2864,6 @@ u32 systemReadJoypad(int which)
       res |= autoFire;
     autoFireToggle = !autoFireToggle;
   }
-  
   return res;
 }
 
